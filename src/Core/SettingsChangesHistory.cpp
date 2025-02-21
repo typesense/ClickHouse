@@ -78,6 +78,7 @@ const VersionToSettingsChangesMap & getSettingsChangesHistory()
             {"output_format_parquet_bloom_filter_bits_per_value", 10.5, 10.5, "New setting."},
             {"output_format_parquet_bloom_filter_flush_threshold_bytes", 128 * 1024 * 1024, 128 * 1024 * 1024, "New setting."},
             {"restore_replicated_merge_tree_to_shared_merge_tree", false, false, "New setting."},
+            {"parallel_replicas_for_cluster_engines", false, true, "New setting."},
         });
         addSettingsChanges(settings_changes_history, "25.1",
         {
@@ -127,7 +128,6 @@ const VersionToSettingsChangesMap & getSettingsChangesHistory()
         addSettingsChanges(settings_changes_history, "24.12",
         {
             /// Release closed. Please use 25.1
-            {"parallel_replicas_for_cluster_engines", false, true, "New setting."},
             {"allow_experimental_database_iceberg", false, false, "New setting."},
             {"shared_merge_tree_sync_parts_on_partition_operations", 1, 1, "New setting. By default parts are always synchronized"},
             {"query_plan_join_swap_table", "false", "auto", "New setting. Right table was always chosen before."},
