@@ -1976,13 +1976,24 @@ private:
             ctx->mutating_executor.reset();
             ctx->mutating_pipeline.reset();
 
-            auto changed_checksums =
-                static_pointer_cast<MergedColumnOnlyOutputStream>(ctx->out)->fillChecksums(
-                    ctx->new_data_part, ctx->new_data_part->checksums);
+            {
+                auto only_outputstream = static_pointer_cast<MergedColumnOnlyOutputStream>(ctx->out);
 
-            ctx->new_data_part->checksums.add(std::move(changed_checksums));
+                auto [changed_checksums, removed_files] = only_outputstream->fillChecksums(ctx->new_data_part, ctx->new_data_part->checksums);
 
-            static_pointer_cast<MergedColumnOnlyOutputStream>(ctx->out)->finish(ctx->need_sync);
+                only_outputstream->finish(ctx->need_sync);
+
+                // We have to remove files after `ctx->out.finish()` called.
+                // Otherwise new files are not visible because they have not been written yet
+                for (const String & removed_file : removed_files)
+                {
+                    LOG_DEBUG(getLogger("MutateSomePartColumnsTask"), "remove file {}, existsFile {}",
+                        removed_file, ctx->new_data_part->getDataPartStorage().existsFile(removed_file));
+                    ctx->new_data_part->getDataPartStorage().removeFileIfExists(removed_file);
+                }
+
+                ctx->new_data_part->checksums.add(std::move(changed_checksums));
+            }
 
             ctx->out.reset();
         }
@@ -2035,6 +2046,12 @@ private:
                     || item == "txn_version.txt";
                 }),
             files_in_part.end());
+
+        LOG_DEBUG(getLogger("MutateSomePartColumnsTask"), "finalize, checksums has {} files, new part has {} files, files in checksums: {}, files in part: {}",
+            ctx->new_data_part->checksums.files.size(),
+            files_in_part.size(),
+            getDebugString(ctx->new_data_part->checksums.getFileNames()),
+            getDebugString(files_in_part));
 
         if (files_in_part.size() != ctx->new_data_part->checksums.files.size())
             throw Exception(ErrorCodes::LOGICAL_ERROR, "Invalid files count in checksums, checksums has {} files, new part has {} files, files in checksums: {}, files in part: {}",
