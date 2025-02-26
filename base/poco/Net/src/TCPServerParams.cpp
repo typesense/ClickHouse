@@ -22,7 +22,7 @@ namespace Net {
 TCPServerParams::TCPServerParams():
 	_threadIdleTime(10000000),
 	_maxThreads(0),
-	_maxQueued(64),
+	_maxQueued(8192),
 	_threadPriority(Poco::Thread::PRIO_NORMAL)
 {
 }

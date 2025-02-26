@@ -46,7 +46,7 @@ namespace Net
         /// Sets the following default values:
         ///   - threadIdleTime:       10 seconds
         ///   - maxThreads:           0
-        ///   - maxQueued:            64
+        ///   - maxQueued:            8192
 
         void setThreadIdleTime(const Poco::Timespan & idleTime);
         /// Sets the maximum idle time for a thread before
@@ -64,7 +64,7 @@ namespace Net
         /// If there are already the maximum number of connections
         /// in the queue, new connections will be silently discarded.
         ///
-        /// The default number is 64.
+        /// The default number is 8192.
 
         int getMaxQueued() const;
         /// Returns the maximum number of queued connections.
